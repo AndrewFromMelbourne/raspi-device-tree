@@ -1,0 +1,72 @@
+/*
+ * Device Tree overlay for MZTX-PI-EXT 2.5" and Tontec 2.4" display
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
+
+	fragment@0 {
+		target = <&spi0>;
+		__overlay__ {
+			status = "okay";
+
+			spidev@0{
+				status = "disabled";
+			};
+
+			spidev@1{
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&gpio>;
+		__overlay__ {
+			mztx_pins: mztx_pins {
+				brcm,pins = <23 25>;
+				brcm,function = <1 1>; /* in out out */
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&spi0>;
+		__overlay__ {
+			/* needed to avoid dtc warning */
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			mztx: mztx@0{
+				compatible = "hitachi,bd663474";
+				reg = <0>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&mztx_pins>;
+
+				spi-max-frequency = <32000000>;
+				spi-cpol;
+				spi-cpha;
+				rotate = <270>;
+				bgr;
+				fps = <25>;
+				buswidth = <8>;
+				reset-gpios = <&gpio 23 0>;
+                dc-gpios = <&gpio 25 0>;
+				debug = <0>;
+			};
+		};
+	};
+	__overrides__ {
+		speed =		<&mztx>,"spi-max-frequency:0";
+		rotate =	<&mztx>,"rotate:0";
+		fps =		<&mztx>,"fps:0";
+		debug =		<&mztx>,"debug:0";
+		resetgpio =	<&mztx>,"reset-gpios:4",
+				<&mztx_pins>, "brcm,pins:1";
+	};
+};
+
